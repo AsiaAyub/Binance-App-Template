@@ -1,22 +1,29 @@
+import 'package:bitcion_app/CoinDescription.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class MostTraded extends StatefulWidget {
-  const MostTraded({super.key, required this.coinsList});
+class CoinsList extends StatefulWidget {
+  const CoinsList({super.key, required this.coinsList});
 
   final List<dynamic> coinsList;
 
   @override
-  State<MostTraded> createState() => _MostTradedState();
+  State<CoinsList> createState() => _CoinsListState();
 }
 
-class _MostTradedState extends State<MostTraded> {
+class _CoinsListState extends State<CoinsList> {
   final formatter = NumberFormat("#,###,##0.0#");
   @override
   Widget build(BuildContext context) {
     return Column(
       children: widget.coinsList.map((coin){
-        return Row(
+        return InkWell(
+            onTap: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder:  (context) => CoinDescription(id: coin.id,),)
+              );
+            },
+          child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
@@ -42,12 +49,10 @@ class _MostTradedState extends State<MostTraded> {
                       Text('\$${formatter.format(coin.currentPrice)}', style: const TextStyle(fontSize: 12),),
                     ],
                   ),
-                  onTap: () {
-                    print('Tapped ListTile ${coin.name}');
-                  },
+
                 ))
               ]
-          );
+          ));
     }
     ).toList(),);
   }

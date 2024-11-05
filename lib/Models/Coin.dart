@@ -18,6 +18,8 @@ class Coin {
   late String atlDate;
   late dynamic totalVolume;
 
+
+
   Coin(
       {required this.id,
       required this.name,
@@ -37,6 +39,12 @@ class Coin {
        this.maxSupply,
         required this.totalVolume,
       required this.totalSupply});
+
+  @override
+  String toString(){
+      return '{$symbol $name $currentPrice $marketCap $marketCapRank $dailyChange $marketCapChange_Percentage24h}';
+  }
+
 
   Coin.fromJson(Map<String, dynamic> json) {
     id = json['id'];

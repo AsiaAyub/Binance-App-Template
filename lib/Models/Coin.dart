@@ -14,9 +14,10 @@ class Coin {
   DateTime? issueDate;
   late dynamic allTimeHigh;
   late dynamic allTimeLow;
-  late String athDate;
-  late String atlDate;
+  late dynamic athDate;
+  late dynamic atlDate;
   late dynamic totalVolume;
+  dynamic? description;
 
 
 
@@ -38,7 +39,9 @@ class Coin {
       required this.marketCapRank,
        this.maxSupply,
         required this.totalVolume,
-      required this.totalSupply});
+      required this.totalSupply,
+        this.description,
+      });
 
   @override
   String toString(){
@@ -51,7 +54,7 @@ class Coin {
     name = json['name'];
     symbol = json['symbol'];
     image = json['image'];
-    currentPrice = json['current_price'];
+    currentPrice = currentPrice = json['current_price'];
     marketCapChange_Percentage24h = json['price_change_percentage_24h'];
     marketCap = json['market_cap'];
     allTimeLow = json['atl'];
@@ -65,5 +68,8 @@ class Coin {
     maxSupply = json['max_supply'];
     totalSupply = json['total_supply'];
     totalVolume = json['total_volume'];
+
   }
 }
+
+

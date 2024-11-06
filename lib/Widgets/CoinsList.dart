@@ -1,3 +1,4 @@
+
 import 'package:bitcion_app/CoinDescription.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -13,14 +14,15 @@ class CoinsList extends StatefulWidget {
 
 class _CoinsListState extends State<CoinsList> {
   final formatter = NumberFormat("#,###,##0.0#");
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: widget.coinsList.map((coin){
         return InkWell(
-            onTap: () {
+            onTap: () async{
               Navigator.push(context,
-                  MaterialPageRoute(builder:  (context) => CoinDescription(id: coin.id,),)
+                  MaterialPageRoute(builder:  (context) => CoinDescription(id: coin.id),)
               );
             },
           child: Row(

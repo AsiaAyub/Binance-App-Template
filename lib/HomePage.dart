@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:bitcion_app/Api/NetworkCalls.dart';
 import 'package:bitcion_app/Models/Coin.dart';
 import 'package:bitcion_app/Widgets/CoinsList.dart';
@@ -27,6 +26,7 @@ class _HomePageState extends State<HomePage> {
       List<Coin> coinsSortedWithMarketCap = [];
       List<Coin> coinsSortedWithPrice = [];
       List<Coin> coinsSortedWith24HChange = [];
+
 
 
       void onMenuTapped(int index) {
@@ -70,10 +70,9 @@ class _HomePageState extends State<HomePage> {
 
       void fetchMostTradedData() async {
         dynamic resp = await NetworkCalls().fetchCoins();
-        if (resp.statusCode == 200) {
-          List<dynamic> jsonData = jsonDecode(resp.body);
+        if(resp != false){
           List<Coin> coinsList = [];
-          coinsList = jsonData.map<Coin>((json) {
+          coinsList = resp.map<Coin>((json) {
             Coin coin = Coin.fromJson(json);
             return coin;
           }).toList();
@@ -90,6 +89,8 @@ class _HomePageState extends State<HomePage> {
           print('no data fetched');
         }
       }
+
+
 
 
 

@@ -1,4 +1,7 @@
+
 import 'dart:math';
+import 'package:bitcion_app/Api/NetworkCalls.dart';
+import 'package:bitcion_app/Models/OneCoin.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -7,13 +10,14 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 class CoinDescription extends StatefulWidget {
   const CoinDescription({super.key, required this.id});
 
-  final dynamic id;
+  final String id;
 
   @override
   State<CoinDescription> createState() => _CoinDescriptionState();
 }
 
 class _CoinDescriptionState extends State<CoinDescription> {
+
   final String coinName = '';
   final String coinSymbol = '';
   List<_SalesData> data = [];
@@ -21,12 +25,17 @@ class _CoinDescriptionState extends State<CoinDescription> {
   int selectedButton = 1;
   List<double> priceList = [];
   bool isLoading = false;
+  OneCoin? coin = null;
+  double marketDom = 0;
+
 
   @override
   void initState() {
     super.initState();
     generateRandomPrice();
     generateDummyData();
+    fetchOneCoinData();
+    calculateMarketDom();
   }
 
   generateRandomPrice() {
@@ -95,6 +104,41 @@ class _CoinDescriptionState extends State<CoinDescription> {
     return data.reduce((a, b) => a.sales < b.sales ? a : b);
   }
 
+  Future fetchOneCoinData() async {
+    dynamic resp = await NetworkCalls().fetchCoinsById(widget.id);
+    if (resp != false) {
+      OneCoin oneCoin = OneCoin.fromJson(resp);
+       setState(() {
+         coin = oneCoin;
+       });
+
+    } else {
+      print('no coin fetched');
+    }
+  }
+
+
+  void calculateMarketDom() async{
+    final globalResponse = await NetworkCalls().getBitcoinDominance();
+
+    setState(() {
+      marketDom = globalResponse;
+    });
+  }
+
+  String formatLargeNumber(double number) {
+    final formatter = NumberFormat("#,##0.00", "en_US");
+
+    if (number >= 1e9) {
+      return '${formatter.format(number / 1e9)}B';
+    } else if (number >= 1e6) {
+      return '${formatter.format(number / 1e6)}M';
+    } else {
+      return formatter.format(number);
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final _SalesData highest = getHighestSalesData();
@@ -102,6 +146,7 @@ class _CoinDescriptionState extends State<CoinDescription> {
     final formatter = NumberFormat("#,###,##0.0#");
     final maxm = highest.sales + 100;
     final minm = lowest.sales - 100;
+
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 70,
@@ -121,7 +166,9 @@ class _CoinDescriptionState extends State<CoinDescription> {
               )),
         ],
       ),
-      body: SingleChildScrollView(
+      body: coin == null
+          ? const Center(child: CircularProgressIndicator(color: Colors.orange,)) // Show a loading spinner until the data is available
+          : SingleChildScrollView(
         child: Padding(
             padding: EdgeInsets.only(left: 18),
             child: Column(
@@ -129,11 +176,11 @@ class _CoinDescriptionState extends State<CoinDescription> {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Text.rich(TextSpan(children: [
-                  const TextSpan(
-                      text: 'Dogecoin ',
-                      style: TextStyle(color: Colors.white, fontSize: 16)),
                   TextSpan(
-                      text: 'DOGE'.toUpperCase(),
+                      text: '${coin?.name} ',
+                      style: const TextStyle(color: Color(0xedf1f0f0), fontSize: 16)),
+                  TextSpan(
+                      text: '${coin?.symbol}'.toUpperCase(),
                       style:
                           const TextStyle(color: Colors.white60, fontSize: 15))
                 ])),
@@ -345,82 +392,82 @@ class _CoinDescriptionState extends State<CoinDescription> {
                                     : Colors.white),
                           )),
                     ]),
-                const Padding(
-                  padding: EdgeInsets.only(top: 14),
+                 Padding(
+                  padding: const EdgeInsets.only(top: 14),
                   child: Text(
-                    'About Dogecoin',
-                    style: TextStyle(
+                    'About ${coin?.name}',
+                    style: const TextStyle(
                         fontWeight: FontWeight.w500,
                         fontSize: 16,
                         color: Colors.white),
                   ),
                 ),
                 ListTile(
-                  contentPadding: EdgeInsets.only(left: 0, right: 24),
-                  title: Text(
+                  contentPadding: const EdgeInsets.only(left: 0, right: 24),
+                  title: const Text(
                     'Rank',
                     style: TextStyle(color: Colors.white38),
                   ),
                   trailing: Text(
-                    'NO: 1',
-                    style: TextStyle(color: Colors.white, fontSize: 15),
+                    coin?.marketCapRank == null? 'Null' : 'NO: ${coin?.marketCapRank}',
+                    style: const TextStyle(color: Color(0xedf1f0f0), fontSize: 13, fontWeight: FontWeight.w400 ),
                   ),
                 ),
                 ListTile(
-                  contentPadding: EdgeInsets.only(left: 0, right: 24),
-                  title: Text('Market Cap',
+                  contentPadding: const EdgeInsets.only(left: 0, right: 24),
+                  title: const Text('Market Cap',
                       style: TextStyle(color: Colors.white38)),
-                  trailing: Text('NO: 1',
-                      style: TextStyle(color: Colors.white, fontSize: 15)),
+                  trailing: Text(formatLargeNumber(coin?.marketCap.toDouble()),
+                      style: const TextStyle(color: Color(0xedf1f0f0), fontSize: 13, fontWeight: FontWeight.w400)),
+                ),
+                  ListTile(
+                  contentPadding: const EdgeInsets.only(left: 0, right: 24),
+                  title: const Text('Market Dominance',
+                      style: TextStyle(color: Colors.white38)),
+                  trailing: Text('${formatLargeNumber((coin?.marketCap / marketDom) * 100)} %',
+                      style: const TextStyle(color: Color(0xedf1f0f0), fontSize: 13, fontWeight: FontWeight.w400)),
                 ),
                 ListTile(
-                  contentPadding: EdgeInsets.only(left: 0, right: 24),
-                  title: Text('Market Dominance',
+                  contentPadding: const EdgeInsets.only(left: 0, right: 24),
+                  title: const Text('Circulation Supply',
                       style: TextStyle(color: Colors.white38)),
-                  trailing: Text('NO: 1',
-                      style: TextStyle(color: Colors.white, fontSize: 15)),
+                  trailing: Text('${formatLargeNumber(coin?.circulatingSupply)} BTC',
+                      style: const TextStyle(color: Color(0xedf1f0f0), fontSize: 13, fontWeight: FontWeight.w400)),
                 ),
                 ListTile(
-                  contentPadding: EdgeInsets.only(left: 0, right: 24),
-                  title: Text('Circulation Supply',
+                  contentPadding: const EdgeInsets.only(left: 0, right: 24),
+                  title: const Text('Max Supply',
                       style: TextStyle(color: Colors.white38)),
-                  trailing: Text('NO: 1',
-                      style: TextStyle(color: Colors.white, fontSize: 15)),
+                  trailing: Text(coin?.maxSupply != null ? '${formatLargeNumber(coin?.maxSupply)} BTC' :'Null',
+                      style: const TextStyle(color: Color(0xedf1f0f0), fontSize: 13, fontWeight: FontWeight.w400)),
                 ),
                 ListTile(
-                  contentPadding: EdgeInsets.only(left: 0, right: 24),
-                  title: Text('Max Supply',
+                  contentPadding: const EdgeInsets.only(left: 0, right: 24),
+                  title: const Text('Total Supply',
                       style: TextStyle(color: Colors.white38)),
-                  trailing: Text('NO: 1',
-                      style: TextStyle(color: Colors.white, fontSize: 15)),
+                  trailing: Text('${formatLargeNumber(coin?.totalSupply)} BTC',
+                      style: const TextStyle(color: Color(0xedf1f0f0), fontSize: 13, fontWeight: FontWeight.w400)),
                 ),
                 ListTile(
-                  contentPadding: EdgeInsets.only(left: 0, right: 24),
-                  title: Text('Total Supply',
+                  contentPadding: const EdgeInsets.only(left: 0, right: 24),
+                  title: const Text('Issue Date',
                       style: TextStyle(color: Colors.white38)),
-                  trailing: Text('NO: 1',
-                      style: TextStyle(color: Colors.white, fontSize: 15)),
+                  trailing: Text('${coin?.issueDate}',
+                      style: const TextStyle(color: Color(0xedf1f0f0), fontSize: 13, fontWeight: FontWeight.w400)),
                 ),
                 ListTile(
-                  contentPadding: EdgeInsets.only(left: 0, right: 24),
-                  title: Text('Issue Date',
+                  contentPadding: const EdgeInsets.only(left: 0, right: 24),
+                  title: const Text('All Time High',
                       style: TextStyle(color: Colors.white38)),
-                  trailing: Text('NO: 1',
-                      style: TextStyle(color: Colors.white, fontSize: 15)),
+                  trailing: Text(formatLargeNumber(coin?.allTimeHigh.toDouble()),
+                      style: const TextStyle(color: Color(0xedf1f0f0), fontSize: 13, fontWeight: FontWeight.w400)),
                 ),
                 ListTile(
-                  contentPadding: EdgeInsets.only(left: 0, right: 24),
-                  title: Text('All Time High',
+                  contentPadding: const EdgeInsets.only(left: 0, right: 24),
+                  title: const Text('All Time Low',
                       style: TextStyle(color: Colors.white38)),
-                  trailing: Text('NO: 1',
-                      style: TextStyle(color: Colors.white, fontSize: 15)),
-                ),
-                ListTile(
-                  contentPadding: EdgeInsets.only(left: 0, right: 24),
-                  title: Text('All Time Low',
-                      style: TextStyle(color: Colors.white38)),
-                  trailing: Text('NO: 1',
-                      style: TextStyle(color: Colors.white, fontSize: 15)),
+                  trailing: Text(formatLargeNumber(coin?.allTimeHigh.toDouble()),
+                      style: const TextStyle(color: Color(0xedf1f0f0), fontSize: 13, fontWeight: FontWeight.w400)),
                 ),
               ],
             )),

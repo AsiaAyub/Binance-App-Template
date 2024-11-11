@@ -2,10 +2,12 @@
 import 'package:bitcion_app/CoinDescription.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:isar/isar.dart';
 
 class CoinsList extends StatefulWidget {
-  const CoinsList({super.key, required this.coinsList});
+  const CoinsList({super.key, required this.coinsList, required this.isar});
 
+  final Isar isar;
   final List<dynamic> coinsList;
 
   @override
@@ -17,12 +19,13 @@ class _CoinsListState extends State<CoinsList> {
 
   @override
   Widget build(BuildContext context) {
+
     return Column(
-      children: widget.coinsList.map((coin){
+      children:widget.coinsList.map((coin){
         return InkWell(
             onTap: () async{
               Navigator.push(context,
-                  MaterialPageRoute(builder:  (context) => CoinDescription(id: coin.id),)
+                  MaterialPageRoute(builder:  (context) => CoinDescription(id: coin.id, isar: widget.isar,),)
               );
             },
           child: Row(

@@ -135,11 +135,27 @@ class _CoinDescriptionState extends State<CoinDescription> {
       marketDom = globalResponse;
     });
   }
+  String formatDates(String datetimeStr){
+    print('the date is $datetimeStr');
+    // Adjust the date format by zero-padding the day if needed
+    if (RegExp(r'\d{4}-\d{1,2}-\d{1}T').hasMatch(datetimeStr)) {
+      datetimeStr = datetimeStr.replaceFirst(RegExp(r'-(\d{1})T'), '-0\$1T');
+    }
+      print('i am here');
+    // Parse the string to a DateTime object
+    DateTime dateTime = DateTime.parse(datetimeStr);
 
+    // Format to display only the date part
+    String formattedDate = DateFormat('yyyy-MM-dd').format(dateTime);
+    return formattedDate;
+  }
   String formatLargeNumber(double number) {
     final formatter = NumberFormat("#,##0.00", "en_US");
 
-    if (number >= 1e9) {
+    if (number >= 1e12) {
+      return '${formatter.format(number / 1e9)}T';
+    }
+    else if (number >= 1e9) {
       return '${formatter.format(number / 1e9)}B';
     } else if (number >= 1e6) {
       return '${formatter.format(number / 1e6)}M';
@@ -173,6 +189,9 @@ class _CoinDescriptionState extends State<CoinDescription> {
         : coin.description.length > trimLength
             ? '${coin.description.substring(0, trimLength)}...'
             : coin.description;
+
+
+
 
     return Scaffold(
       appBar: AppBar(
@@ -213,23 +232,25 @@ class _CoinDescriptionState extends State<CoinDescription> {
                       style:
                           const TextStyle(color: Colors.white60, fontSize: 15))
                 ])),
-                const Padding(
-                  padding: EdgeInsets.only(top: 5),
+                Padding(
+                  padding: const EdgeInsets.only(top: 5),
                   child: Text(
-                    '\$0.15613',
-                    style: TextStyle(
+                    '\$${formatter.format(coin.currentPrice)}',
+                    style: const TextStyle(
                         fontSize: 36,
                         color: Colors.white,
                         fontWeight: FontWeight.bold),
                   ),
                 ),
-                const Padding(
-                  padding: EdgeInsets.only(top: 5),
+                Padding(
+                  padding: const EdgeInsets.only(top: 5),
                   child: Text(
-                    '+2.96%',
+                    '${formatter.format(coin.marketCapChange_Percentage24h)}%',
                     style: TextStyle(
                         fontSize: 15,
-                        color: Colors.green,
+                        color: coin.marketCapChange_Percentage24h < 0
+                            ? Colors.red
+                            : Colors.green,
                         fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -278,8 +299,8 @@ class _CoinDescriptionState extends State<CoinDescription> {
                                 // Annotation for the highest point
                                 CartesianChartAnnotation(
                                   widget: Container(
-                                    margin: const EdgeInsets.only(
-                                        bottom: 20, right: 40),
+                                    padding: const EdgeInsets.only(
+                                        bottom: 20, right: 40,left: 34),
                                     child: Text(
                                       '\$${formatter.format(highest.sales)}',
                                       style: const TextStyle(
@@ -294,8 +315,8 @@ class _CoinDescriptionState extends State<CoinDescription> {
                                 // Annotation for the lowest point
                                 CartesianChartAnnotation(
                                   widget: Container(
-                                    margin: const EdgeInsets.only(
-                                        top: 20, left: 40),
+                                    padding: const EdgeInsets.only(
+                                        top: 20, left: 40, right: 34),
                                     child: Text(
                                       '\$${formatter.format(lowest.sales)}',
                                       style: const TextStyle(
@@ -432,9 +453,11 @@ class _CoinDescriptionState extends State<CoinDescription> {
                 ),
                 ListTile(
                   contentPadding: const EdgeInsets.only(left: 0, right: 24),
+                  dense: true,
+                  visualDensity: const VisualDensity(vertical: -1),
                   title: const Text(
                     'Rank',
-                    style: TextStyle(color: Colors.white38),
+                    style: TextStyle(color: Colors.white38, fontSize: 15),
                   ),
                   trailing: Text(
                     coin.marketCapRank == null
@@ -442,95 +465,163 @@ class _CoinDescriptionState extends State<CoinDescription> {
                         : 'NO: ${coin.marketCapRank}',
                     style: const TextStyle(
                         color: Color(0xedf1f0f0),
-                        fontSize: 13,
+                        fontSize: 14,
                         fontWeight: FontWeight.w400),
                   ),
                 ),
                 ListTile(
                   contentPadding: const EdgeInsets.only(left: 0, right: 24),
+                  dense: true,
+                  visualDensity: const VisualDensity(vertical: -1),
                   title: const Text('Market Cap',
-                      style: TextStyle(color: Colors.white38)),
-                  trailing: Text(formatLargeNumber(coin.marketCap.toDouble()),
-                      style: const TextStyle(
-                          color: Color(0xedf1f0f0),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w400)),
+                      style: TextStyle(color: Colors.white38, fontSize: 15)),
+                  trailing: Column(
+    children: [
+    Text('\$${formatLargeNumber(coin.marketCap.toDouble())}',
+    style: const TextStyle(
+    color: Color(0xedf1f0f0),
+    fontSize: 14,
+    fontWeight: FontWeight.w400)),
+      Text('=\$${formatLargeNumber(coin.marketCap.toDouble())}',
+          style: const TextStyle(
+              color: Colors.white38,
+              fontSize: 12,
+              fontWeight: FontWeight.w400))
+    ],
+    )
+                 ,
                 ),
                 ListTile(
                   contentPadding: const EdgeInsets.only(left: 0, right: 24),
+                  dense: true,
+                  visualDensity: const VisualDensity(vertical: -1),
                   title: const Text('Market Dominance',
-                      style: TextStyle(color: Colors.white38)),
-                  trailing: Text(
+                      style: TextStyle(color: Colors.white38, fontSize: 15)),
+                  trailing: Text(marketDom == 1? 'Null' :
                       '${formatLargeNumber((coin.marketCap / marketDom) * 100)} %',
                       style: const TextStyle(
                           color: Color(0xedf1f0f0),
-                          fontSize: 13,
+                          fontSize: 14,
                           fontWeight: FontWeight.w400)),
                 ),
                 ListTile(
                   contentPadding: const EdgeInsets.only(left: 0, right: 24),
+                  dense: true,
+                  visualDensity: const VisualDensity(vertical: -1),
                   title: const Text('Circulation Supply',
-                      style: TextStyle(color: Colors.white38)),
+                      style: TextStyle(color: Colors.white38, fontSize: 15)),
                   trailing: Text(
                       '${formatLargeNumber(coin.circulatingSupply)} BTC',
                       style: const TextStyle(
                           color: Color(0xedf1f0f0),
-                          fontSize: 13,
+                          fontSize: 14,
                           fontWeight: FontWeight.w400)),
                 ),
                 ListTile(
                   contentPadding: const EdgeInsets.only(left: 0, right: 24),
+                  dense: true,
+                  visualDensity: const VisualDensity(vertical: -1),
                   title: const Text('Max Supply',
-                      style: TextStyle(color: Colors.white38)),
+                      style: TextStyle(color: Colors.white38, fontSize: 15)),
                   trailing: Text(
                       coin.maxSupply == null
                           ? 'Null'
                           : '${formatLargeNumber(coin.maxSupply ?? 0.0)} BTC',
                       style: const TextStyle(
                           color: Color(0xedf1f0f0),
-                          fontSize: 13,
+                          fontSize: 14,
                           fontWeight: FontWeight.w400)),
                 ),
                 ListTile(
                   contentPadding: const EdgeInsets.only(left: 0, right: 24),
+                  dense: true,
+                  visualDensity: const VisualDensity(vertical: -1),
                   title: const Text('Total Supply',
-                      style: TextStyle(color: Colors.white38)),
+                      style: TextStyle(color: Colors.white38, fontSize: 15)),
                   trailing: Text('${formatLargeNumber(coin.totalSupply)} BTC',
                       style: const TextStyle(
                           color: Color(0xedf1f0f0),
-                          fontSize: 13,
+                          fontSize: 14,
                           fontWeight: FontWeight.w400)),
                 ),
                 ListTile(
                   contentPadding: const EdgeInsets.only(left: 0, right: 24),
+                  dense: true,
+                  visualDensity: const VisualDensity(vertical: -1),
                   title: const Text('Issue Date',
-                      style: TextStyle(color: Colors.white38)),
+                      style: TextStyle(color: Colors.white38, fontSize: 15)),
                   trailing: Text(coin.issueDate,
                       style: const TextStyle(
                           color: Color(0xedf1f0f0),
-                          fontSize: 13,
+                          fontSize: 14,
                           fontWeight: FontWeight.w400)),
                 ),
                 ListTile(
-                  contentPadding: const EdgeInsets.only(left: 0, right: 24),
+                  contentPadding: const EdgeInsets.only(left: 0, right: 24, bottom: 9),
                   title: const Text('All Time High',
-                      style: TextStyle(color: Colors.white38)),
-                  trailing: Text(formatLargeNumber(coin.allTimeHigh.toDouble()),
-                      style: const TextStyle(
-                          color: Color(0xedf1f0f0),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w400)),
+                      style: TextStyle(
+                        color: Colors.white38,
+                        fontSize: 15,
+                        decoration: TextDecoration.underline,
+                        decorationColor: Colors.white38,
+
+                      )),
+                  trailing: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                          '\$${formatLargeNumber(coin.allTimeHigh.toDouble())}',
+                          style: const TextStyle(
+                              color: Color(0xedf1f0f0),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400)),
+                      Text(
+                          '=\$${formatLargeNumber(coin.allTimeHigh.toDouble())}',
+                          style: const TextStyle(
+                              color: Colors.white38,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400)),
+                      Text(coin.athDate== ''? 'not fetched' : formatDates(coin.athDate),
+                          style: const TextStyle(
+                              color: Colors.white38,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400)),
+                    ],
+                  ),
                 ),
                 ListTile(
-                  contentPadding: const EdgeInsets.only(left: 0, right: 24),
-                  title: const Text('All Time Low',
-                      style: TextStyle(color: Colors.white38)),
-                  trailing: Text(formatLargeNumber(coin.allTimeHigh.toDouble()),
-                      style: const TextStyle(
-                          color: Color(0xedf1f0f0),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w400)),
-                ),
+                    contentPadding: const EdgeInsets.only(left: 0, right: 24, bottom: 5),
+                    title: const Text('All Time Low',
+                        style: TextStyle(
+                            color: Colors.white38,
+                            fontSize: 15,
+                          decoration: TextDecoration.underline,
+                          decorationColor: Colors.white38,
+                        )),
+                    trailing: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                            '\$${formatLargeNumber(coin.allTimeLow.toDouble())}',
+                            style: const TextStyle(
+                                color: Color(0xedf1f0f0),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400)),
+                        Text(
+                            '=\$${formatLargeNumber(coin.allTimeLow.toDouble())}',
+                            style: const TextStyle(
+                                color: Colors.white38,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400)),
+                        Text(coin.atlDate == ''? 'not fetched' :formatDates(coin.atlDate),
+                            style: const TextStyle(
+                                color: Colors.white38,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400)),
+                      ],
+                    )),
               ],
             )),
         Container(

@@ -1,6 +1,5 @@
 import 'package:bitcion_app/Api/NetworkCalls.dart';
 import 'package:bitcion_app/Models/Coin.dart';
-import 'package:bitcion_app/Models/OneCoin.dart';
 import 'package:bitcion_app/Widgets/CoinsList.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -54,7 +53,7 @@ class _HomePageState extends State<HomePage> {
             } else {
               coinsSortedWithPrice.sort((a, b) => a.currentPrice.compareTo(b.currentPrice));
             }
-            isDescPrice = !isDescPrice; // Toggle the sort order
+            isDescPrice = !isDescPrice;
           }
         });
       }
@@ -67,7 +66,7 @@ class _HomePageState extends State<HomePage> {
           } else {
           coinsSortedWith24HChange.sort((a, b) => a.dailyChange.compareTo(b.dailyChange));
           }
-          isDescChange = !isDescChange; // Toggle the sort order
+          isDescChange = !isDescChange;
           }
         });
       }
@@ -105,14 +104,14 @@ class _HomePageState extends State<HomePage> {
 
 
           } else {
-            print('No data fetched');
+            print('No data fetched or an error occurred while fetching');
           }
         } else {
           print('Coins already in database');
 
           // After writing is complete, fetch all IDs
-          coinIds = await getAllCoinIds();
-          print('Fetched Coin IDs: $coinIds');
+          // coinIds = await getAllCoinIds();
+          // print('Fetched Coin IDs: $coinIds');
 
           // Fetch the coins from Isar
           final listOfCoins = await widget.isar.coins.where().findAll(); // Reads all coins from Isar
@@ -127,12 +126,13 @@ class _HomePageState extends State<HomePage> {
         }
       }
 
-      Future<List<String>> getAllCoinIds() async {
-        // Fetch all coins from the Isar database
-        final coins = await widget.isar.coins.where().findAll();
-        // Map the results to extract only the 'id' as a List<String>
-        return coins.map<String>((coin) => coin.id).toList();
-      }
+      // Future<List<String>> getAllCoinIds() async {
+      //   // Fetch all coins from the Isar database
+      //   final coins = await widget.isar.coins.where().findAll();
+      //
+      //   // Map the results to extract only the 'id' as a List<String>
+      //   return coins.map<String>((coin) => coin.id).toList();
+      // }
 
       // Future<void> fetchMultipleCoins(List<String> coinIds) async {
       //   print('');
@@ -165,7 +165,7 @@ class _HomePageState extends State<HomePage> {
       //   }
       // }
       // else{
-      //   print('the consid list os empty');
+      //   print('the coinsid list is empty');
       // }
       // }
 
@@ -183,7 +183,8 @@ class _HomePageState extends State<HomePage> {
               "assets/icons/Binance Icon.png",
               height: 10,
               width: 10,
-            )),
+            )
+        ),
         actions: const [
           Padding(padding: EdgeInsets.all(10), child: Icon(Icons.search)),
           Padding(
@@ -236,7 +237,6 @@ class _HomePageState extends State<HomePage> {
                         ElevatedButton(
                             onPressed: () {
                               showList(2);
-
                             },
                             style: ButtonStyle(
                                 elevation: const WidgetStatePropertyAll(0),
@@ -368,18 +368,23 @@ class _HomePageState extends State<HomePage> {
                         )
                       ],
                     ),
+
+                    //start of the list view
                     if (selectedButton == 1)
                       CoinsList(
                         coinsList: coins, isar: widget.isar,
                       )
+
                     else if (selectedButton == 2)
                       CoinsList(
                         coinsList: coinsSortedWithMarketCap, isar: widget.isar,
                       )
+
                     else if (selectedButton == 3)
                         CoinsList(
                         coinsList: coinsSortedWithPrice,  isar: widget.isar,
                       )
+
                     else if (selectedButton == 4)
                           CoinsList(
                         coinsList: coinsSortedWith24HChange,  isar: widget.isar,
@@ -388,6 +393,7 @@ class _HomePageState extends State<HomePage> {
               )
           )
       ),
+
       bottomNavigationBar: Container(
           decoration: const BoxDecoration(
               border: Border(top: BorderSide(width: 1, color: Colors.white10))),
